@@ -161,11 +161,12 @@ class CallManager(private val context: Context) {
         fail(command, CallError.NO_ROLE); return false
     }
 
-    private fun fail(command: String, error: String) =
+    private fun fail(command: String, error: String) {
         // Stage 30: one listener that throws must not stop the others (this also runs from a main-thread timer).
         for (l in listeners) {
             try { l.onCommandFailed(command, error, snapshot) } catch (e: Exception) { BluetoothDiagnostics.record(BluetoothDiagnostics.Area.LISTENER, "call command-failed listener", e, command) }
         }
+    }
 
     private fun confirm(command: String, timeoutMs: Long, done: () -> Boolean) {
         main.postDelayed({ if (!done()) fail(command, CallError.NOT_CONFIRMED) }, timeoutMs)
