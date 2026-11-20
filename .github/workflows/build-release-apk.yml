@@ -56,11 +56,15 @@ jobs:
             ks="$RUNNER_TEMP/release.keystore"
             echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ks"
             apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
-            export KS_PASS="$ANDROID_KEYSTORE_PASSWORD"
-            export KEY_PASS="${ANDROID_KEY_PASSWORD:-$ANDROID_KEYSTORE_PASSWORD}"
+            # Keep only printable ASCII (no spaces): copy/paste can add hidden characters (newline, RTL mark, BOM)
+            # and apksigner then fails with "Password is not ASCII".
+            clean() { printf '%s' "$1" | LC_ALL=C tr -cd '\041-\176'; }
+            export KS_PASS="$(clean "$ANDROID_KEYSTORE_PASSWORD")"
+            export KEY_PASS="$(clean "${ANDROID_KEY_PASSWORD:-$ANDROID_KEYSTORE_PASSWORD}")"
+            key_alias="$(clean "$ANDROID_KEY_ALIAS")"
             "$apksigner" sign \
               --ks "$ks" \
-              --ks-key-alias "$ANDROID_KEY_ALIAS" \
+              --ks-key-alias "$key_alias" \
               --ks-pass env:KS_PASS \
               --key-pass env:KEY_PASS \
               --out dist/AntiRegister.apk \
