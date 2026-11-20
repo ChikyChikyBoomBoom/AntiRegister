@@ -1,0 +1,6 @@
+id=companioncall_priv
+name=AntiRegister privileged app (experimental, POCO F3)
+version=stage35
+versionCode=35
+author=AntiRegister project
+description=EXPERIMENTAL. Installs com.example.companion as a privileged system app (systemless) and allowlists CAPTURE_AUDIO_OUTPUT. Not verified on a device. See MAGISK_INSTALLATION.md.

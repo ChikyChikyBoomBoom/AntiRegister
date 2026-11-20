@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
+    <uses-feature android:name="android.hardware.telephony" android:required="false" />
+
+    <!-- Android 11 and below -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+    <!-- Android 12+ -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <!-- Only used by the SIM Phone to show the system "make discoverable" dialog -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+
+    <!-- Stage 25 (permission review): CALL_PHONE is NOT declared while calling is off (CallFeatures.CALLING_ENABLED = false).
+         Its only user is CallManager (TelecomManager.placeCall), which returns before reaching it while calling is off, and the Setup
+         screen never asks for it in that state. The code is still in the project. To restore, add back, together with turning calling on
+         (see STAGE7_NOTES.md and STAGE25_NOTES.md):
+           uses-permission android:name="android.permission.CALL_PHONE"
+         It is still classified in magisk/permissions/permission-classification.txt, so nothing there needs to change. -->
+    <!-- Android 13+ runtime permission. Main Phone: SMS notifications (Stage 15), asked from the Setup screen. Stage 25: the SIM Phone no longer asks for it
+         while calling is off, because its only notification is the call notification (CallNotifier), which is off; it is still declared for the Main Phone. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Stage 25 (permission review): USE_FULL_SCREEN_INTENT is NOT declared while calling is off. Its only user is the ringing call notification
+         (CallNotifier, setFullScreenIntent), which returns before building anything while CallFeatures.CALLING_ENABLED = false. The code is still in the
+         project. To restore, add back, together with turning calling on:
+           uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"
+         It is still classified in magisk/permissions/permission-classification.txt. -->
+
+    <!-- Stage 8, SIM Phone only (requested at runtime only when that role is selected). No READ_SMS, no default-SMS-app role. -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- Stage 5, SIM Phone only: READ-ONLY access to the phone's call log, used only to DISPLAY call history (SimCallActivity, SimCallLogReader).
+         Requested at runtime, only when the user taps "Allow call history access". Replaces the default-phone-app role / InCallService as the source of
+         call history. Not CALL_PHONE, not RECORD_AUDIO, no WRITE_CALL_LOG. Every screen works without it (the history section explains what is missing). -->
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+
+    <!-- Stage 19, Main Phone, OPTIONAL: look up a number's contact name/photo. Requested at runtime only when the user taps "Show contact names";
+         every screen works without it (numbers are shown). The contact picker uses the system picker and needs no permission. No WRITE_CONTACTS, no GET_ACCOUNTS. -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- Stage 4 (restrict audio permissions): RECORD_AUDIO and MODIFY_AUDIO_SETTINGS are NOT declared while audio transfer is off
+         (AudioTransferFeatures.AUDIO_TRANSFER_ENABLED = false). Their code is still in the project. To restore, add back:
+           uses-permission android:name="android.permission.RECORD_AUDIO"
+           uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"
+         (as normal uses-permission elements). See STAGE4_NOTES.md. The uses-feature below is not a permission and was left as it was. -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <!-- Stage 4 (restrict audio permissions): CAPTURE_AUDIO_OUTPUT (signature|privileged, Stage 35) is NOT declared while the downlink
+         bridge is off (AUDIO_TRANSFER_ENABLED = false, MAGISK_ENABLED = false, CompanionApp.DOWNLINK_BRIDGE = false). CellularDownlinkSource
+         and the Magisk module are still in the project. To restore, add back as a normal uses-permission element:
+           uses-permission android:name="android.permission.CAPTURE_AUDIO_OUTPUT" tools:ignore="ProtectedPermissions"
+         and put the matching permission element back into the allowlist XML in magisk/module-template (see its Stage 4 comment), otherwise
+         magisk/check_permissions.py fails on purpose. See STAGE4_NOTES.md and MAGISK_INSTALLATION.md. -->
+
+    <application
+        android:name=".app.CompanionApp"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:allowBackup="false"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.Light.DarkActionBar">
+        <activity android:name=".ui.MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.RoleSelectActivity" />
+        <activity android:name=".ui.StatusActivity" />
+        <!-- Stage 22: first-run setup and Setup Status. Adds no permission; every runtime permission is requested from here. -->
+        <activity android:name=".ui.SetupActivity" />
+        <!-- Stage 23: connection & error diagnostics (read-only view of existing state; copy to clipboard, nothing uploaded). Adds no permission. Stage 23 (structure review): the screen finishes itself unless DiagnosticScreens.VISIBLE is true. -->
+        <activity android:name=".ui.DiagnosticsActivity" />
+        <activity android:name=".ui.HomeActivity" />
+        <activity android:name=".ui.DevicePickerActivity" />
+        <!-- Stage 18: Settings (role, device, connection, auto-reconnect, app info) -->
+        <activity android:name=".ui.SettingsActivity" />
+        <activity android:name=".ui.CallActivity" />
+        <!-- Stage 11: Main Phone dial pad -->
+        <activity android:name=".ui.DialPadActivity" />
+        <!-- Stage 12: Main Phone recent calls (local history) -->
+        <activity android:name=".ui.RecentCallsActivity" />
+        <!-- Stage 10: Main Phone call screen (incoming / outgoing / active) -->
+        <activity android:name=".ui.InCallActivity" android:launchMode="singleTop" />
+        <activity android:name=".ui.AudioDiagActivity" />
+        <activity android:name=".ui.AudioTransportTestActivity" />
+        <activity android:name=".ui.HfpDiagActivity" />
+        <activity android:name=".ui.SmsConversationsActivity" />
+        <activity android:name=".ui.SmsThreadActivity" android:windowSoftInputMode="adjustResize" />
+
+        <!-- Stage 8. SMS_RECEIVED is a protected broadcast (only the system can send it), so it must be exported to be delivered. -->
+        <receiver android:name=".sms.SmsReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+        <!-- Stage 16: Answer / Reject buttons of the Main Phone incoming-call notification. Our own explicit PendingIntents only. -->
+        <receiver android:name=".ui.CallActionReceiver" android:exported="false" />
+        <!-- Receives only our own explicit PendingIntents (per-part "sent" result from Android) -->
+        <receiver android:name=".sms.SmsSentReceiver" android:exported="false" />
+
+        <!-- Stage 31A: this activity stays exported (the ACTION_DIAL filters below are required for the dialer role). It shows over the lock screen,
+             so SimCallActivity does not read or draw the call history while a secure lock screen is up (see STAGE31A_NOTES.md). -->
+        <!-- SIM Phone call screen. The two ACTION_DIAL filters are required for the default phone app role.
+             Stage 5: unchanged. They play no part in call history any more (history is read from the call log with READ_CALL_LOG and needs no role);
+             they only keep the legacy call-control role available. -->
+        <activity
+            android:name=".ui.SimCallActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="tel" />
+            </intent-filter>
+        </activity>
+
+        <!-- Bound by Telecom only while this app is the default phone app.
+             Stage 5: kept for the legacy call-control screen; it is no longer the source of the SIM Phone's call history. -->
+        <service
+            android:name=".calls.CompanionInCallService"
+            android:exported="true"
+            android:permission="android.permission.BIND_INCALL_SERVICE">
+            <meta-data android:name="android.telecom.IN_CALL_SERVICE_UI" android:value="true" />
+            <intent-filter>
+                <action android:name="android.telecom.InCallService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

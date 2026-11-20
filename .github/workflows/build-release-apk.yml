@@ -1,0 +1,81 @@
+name: Build Release APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  release-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Optional signing inputs. They come from GitHub repository secrets and are never stored in the repo.
+      # If ANDROID_KEYSTORE_BASE64 is not set, the APK is left UNSIGNED (it builds, but Android will not install it).
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+
+      - name: Build release APK
+        run: gradle :app:assembleRelease --stacktrace
+
+      - name: Produce AntiRegister.apk
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          shopt -s nullglob
+          apks=(app/build/outputs/apk/release/*.apk)
+          if [ "${#apks[@]}" -ne 1 ]; then
+            echo "Expected exactly one release APK, found ${#apks[@]}:" >&2
+            ls -la app/build/outputs/apk/release/ >&2 || true
+            exit 1
+          fi
+          built="${apks[0]}"
+
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ]; then
+            echo "Signing secrets found: signing the release APK."
+            ks="$RUNNER_TEMP/release.keystore"
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ks"
+            apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -n 1)"
+            export KS_PASS="$ANDROID_KEYSTORE_PASSWORD"
+            export KEY_PASS="${ANDROID_KEY_PASSWORD:-$ANDROID_KEYSTORE_PASSWORD}"
+            "$apksigner" sign \
+              --ks "$ks" \
+              --ks-key-alias "$ANDROID_KEY_ALIAS" \
+              --ks-pass env:KS_PASS \
+              --key-pass env:KEY_PASS \
+              --out dist/AntiRegister.apk \
+              "$built"
+            "$apksigner" verify dist/AntiRegister.apk
+            rm -f "$ks"
+          else
+            echo "::warning::No signing secrets configured. AntiRegister.apk is UNSIGNED and cannot be installed until it is signed."
+            cp "$built" dist/AntiRegister.apk
+          fi
+          ls -la dist/
+
+      - name: Upload AntiRegister.apk
+        uses: actions/upload-artifact@v4
+        with:
+          name: AntiRegister
+          path: dist/AntiRegister.apk
+          if-no-files-found: error

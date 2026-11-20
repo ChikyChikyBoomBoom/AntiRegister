@@ -1,0 +1,23 @@
+# Protection level of EVERY permission declared by app/src/main/AndroidManifest.xml (Stage 35).
+# Format: <permission name><TAB><level>   level = normal | dangerous | privileged
+# 'privileged' means signature|privileged: it needs the privapp allowlist (see module-template/system/etc/permissions/).
+# Source: AOSP permission definitions as known when this file was written. NOT re-checked on the device: confirm there with
+#   adb shell pm list permissions -f | grep -A4 <permission name>        (look at the protectionLevel line)
+# A permission that is declared in the APK but missing here makes build_module.sh FAIL on purpose, so that a new permission is
+# classified by a human before a privileged package is built.
+android.permission.BLUETOOTH	normal
+android.permission.BLUETOOTH_ADMIN	normal
+android.permission.ACCESS_FINE_LOCATION	dangerous
+android.permission.BLUETOOTH_SCAN	dangerous
+android.permission.BLUETOOTH_CONNECT	dangerous
+android.permission.BLUETOOTH_ADVERTISE	dangerous
+android.permission.CALL_PHONE	dangerous
+android.permission.POST_NOTIFICATIONS	dangerous
+android.permission.USE_FULL_SCREEN_INTENT	normal
+android.permission.RECEIVE_SMS	dangerous
+android.permission.SEND_SMS	dangerous
+android.permission.READ_CONTACTS	dangerous
+android.permission.RECORD_AUDIO	dangerous
+android.permission.MODIFY_AUDIO_SETTINGS	normal
+android.permission.CAPTURE_AUDIO_OUTPUT	privileged
+android.permission.READ_CALL_LOG	dangerous

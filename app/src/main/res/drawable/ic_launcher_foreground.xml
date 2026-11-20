@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AntiRegister launcher icon, foreground layer (Stage 11): a shield with a signal glyph cut out of it.
+     108dp canvas; all artwork sits inside the 66dp adaptive-icon safe zone. The glyph is a true hole (evenOdd), so the same drawable
+     also works as the monochrome (themed icon) layer. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M54,24 L78,32 L78,52 C78,68 67,78 54,84 C41,78 30,68 30,52 L30,32 Z M49.5,63 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0 Z M43.60,53.63 A14,14 0 0,1 64.40,53.63 L61.06,56.64 A9.5,9.5 0 0,0 46.94,56.64 Z M36.16,46.94 A24,24 0 0,1 71.84,46.94 L68.49,49.95 A19.5,19.5 0 0,0 39.51,49.95 Z" />
+</vector>

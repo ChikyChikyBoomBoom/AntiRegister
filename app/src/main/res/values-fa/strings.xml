@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stage 19: Persian launcher name. Same key as values/strings.xml; used when the phone's language is Persian. -->
+<resources>
+    <string name="app_name">آنتی رجیستر</string>
+</resources>

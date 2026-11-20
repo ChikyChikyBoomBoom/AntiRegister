@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Privileged-permission allowlist for com.example.companion (Stage 35).
+
+  Rule: this list MUST contain EVERY signature|privileged permission the APK declares, and nothing else.
+  On Android 9+ a privileged app that declares a signature|privileged permission which is not listed here
+  (or in another allowlist on the same partition) can make the device fail to boot when the system enforces
+  allowlists (ro.control_privapp_permissions=enforce). Do not add entries "just in case", do not remove entries
+  without removing the matching <uses-permission> from the manifest.
+  Verified at module build time by magisk/check_permissions.py against the real APK, and at install time by customize.sh.
+-->
+<permissions>
+    <privapp-permissions package="com.example.companion">
+        <!-- Stage 4: CAPTURE_AUDIO_OUTPUT is no longer declared in the manifest, so it must not be listed (check_permissions.py rejects
+             speculative entries). To restore, re-add the manifest line and replace this comment with:
+             permission element, name = android.permission.CAPTURE_AUDIO_OUTPUT (the exact line that stood here before Stage 4). -->
+    </privapp-permissions>
+</permissions>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stage 19: the launcher / system name of the app (the manifest label). The in-app texts live in the Kotlin catalog (i18n/StringKey.kt),
+     which follows the language chosen inside the app; this one follows the phone's language, because Android reads it before the app runs.
+     English (this file) is the default and the fallback for every language without its own file. -->
+<resources>
+    <string name="app_name">AntiRegister</string>
+</resources>
